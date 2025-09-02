@@ -8,11 +8,13 @@ import "react-toastify/dist/ReactToastify.css";
 const Delete = ({setShowPopup , valueType, addressId, customerId}) => {
   
   const {url} = useContext(AppContext)
-
+  console.log('valueType', valueType)
   const types = valueType === 'address' ? `/api/addresses/${addressId}` : `/api/customers/${customerId}`
+  console.log('delete url', `${url}${types}` )
   const handleDelete = async() => {
      try {
       const response = await axios.delete(`${url}${types}`)
+      console.log('delete', response)
       if(response.status === 200){
         
         toast.success('Deleted Successfully!')

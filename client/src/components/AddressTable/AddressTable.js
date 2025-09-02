@@ -36,7 +36,9 @@ const AddressTable = ({customerDetails, setEditAddress,setAddressId, setAddAddre
             size={18}
           />
           <MdDeleteOutline
-            onClick={() => setShowPopup(true)}
+            onClick={() => {setShowPopup(true) 
+              setAddressId(data.id)
+            }}
             size={18}
             style={{ color: 'red', cursor: 'pointer' }}
           />
