@@ -1,6 +1,5 @@
 const express = require('express');
 const Database = require('better-sqlite3');
-const database = new Database('./database.db');
 const cors = require('cors');
 
 const app = express();
@@ -10,48 +9,27 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to SQLite database
-const database = new sqlite3.Database('./database.db', (err) => {
-    if (err) {
-        console.error('Error opening database:', err.message);
-    } else {
-        console.log('Connected to the SQLite database.');
-        initializeDatabase();
-    }
-});
-
-// Custom Promise wrapper (fixes lastID / changes issue)
-const db = {
-    run: (sql, params = []) => new Promise((resolve, reject) => {
-        database.run(sql, params, function (err) {
-            if (err) reject(err);
-            else resolve({ lastID: this.lastID, changes: this.changes });
-        });
-    }),
-    get: (sql, params = []) => new Promise((resolve, reject) => {
-        database.get(sql, params, (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-        });
-    }),
-    all: (sql, params = []) => new Promise((resolve, reject) => {
-        database.all(sql, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    })
-};
+let db;
+try {
+    db = new Database('./database.db');
+    console.log('Connected to the SQLite database.');
+    initializeDatabase();
+} catch (err) {
+    console.error('Error opening database:', err.message);
+    process.exit(1);
+}
 
 // Initialize database tables
-async function initializeDatabase() {
+function initializeDatabase() {
     try {
-        await db.run(`CREATE TABLE IF NOT EXISTS customers (
+        db.exec(`CREATE TABLE IF NOT EXISTS customers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             first_name TEXT NOT NULL,
             last_name TEXT NOT NULL,
             phone_number TEXT NOT NULL UNIQUE
         )`);
 
-        await db.run(`CREATE TABLE IF NOT EXISTS addresses (
+        db.exec(`CREATE TABLE IF NOT EXISTS addresses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             customer_id INTEGER NOT NULL,
             address_details TEXT NOT NULL,
@@ -99,7 +77,7 @@ function validateAddress(address) {
     return errors;
 }
 
-// Customer
+// Customer Routes
 
 // POST /api/customers - Create new customer
 app.post('/api/customers', async (req, res) => {
@@ -111,12 +89,12 @@ app.post('/api/customers', async (req, res) => {
             return res.status(400).json({ message: 'Validation error', errors });
         }
 
-        const insertQuery = `INSERT INTO customers (first_name, last_name, phone_number) VALUES (?, ?, ?)`;
-        const result = await db.run(insertQuery, [first_name, last_name, phone_number]);
+        const insertQuery = db.prepare(`INSERT INTO customers (first_name, last_name, phone_number) VALUES (?, ?, ?)`);
+        const result = insertQuery.run(first_name, last_name, phone_number);
 
         res.status(201).json({
             message: 'Customer created successfully',
-            data: { id: result.lastID, first_name, last_name, phone_number }
+            data: { id: result.lastInsertRowid, first_name, last_name, phone_number }
         });
     } catch (error) {
         if (error.message.includes('UNIQUE constraint failed')) {
@@ -169,13 +147,13 @@ app.get('/api/customers', async (req, res) => {
 
         const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
-        const countQuery = `SELECT COUNT(*) as total FROM customers ${whereClause}`;
-        const countResult = await db.get(countQuery, params);
+        const countQuery = db.prepare(`SELECT COUNT(*) as total FROM customers ${whereClause}`);
+        const countResult = countQuery.get(...params);
         const total = countResult.total;
         const totalPages = Math.ceil(total / limitNum);
 
-        const selectQuery = `SELECT * FROM customers ${whereClause} ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
-        const customers = await db.all(selectQuery, [...params, limitNum, offset]);
+        const selectQuery = db.prepare(`SELECT * FROM customers ${whereClause} ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`);
+        const customers = selectQuery.all(...params, limitNum, offset);
 
         res.status(200).json({
             message: 'Customers retrieved successfully',
@@ -200,7 +178,8 @@ app.get('/api/customers/:id', async (req, res) => {
         const customerId = parseInt(req.params.id);
         if (isNaN(customerId)) return res.status(400).json({ message: 'Invalid customer ID', errors: ['Customer ID must be a number'] });
 
-        const customer = await db.get('SELECT * FROM customers WHERE id = ?', [customerId]);
+        const query = db.prepare('SELECT * FROM customers WHERE id = ?');
+        const customer = query.get(customerId);
         if (!customer) return res.status(404).json({ message: 'Customer not found', errors: ['No such customer'] });
 
         res.status(200).json({ message: 'Customer retrieved successfully', data: customer });
@@ -215,10 +194,12 @@ app.get('/api/customers/:id/full', async (req, res) => {
         const customerId = parseInt(req.params.id);
         if (isNaN(customerId)) return res.status(400).json({ message: 'Invalid customer ID', errors: ['Customer ID must be a number'] });
 
-        const customer = await db.get('SELECT * FROM customers WHERE id = ?', [customerId]);
+        const customerQuery = db.prepare('SELECT * FROM customers WHERE id = ?');
+        const customer = customerQuery.get(customerId);
         if (!customer) return res.status(404).json({ message: 'Customer not found', errors: ['No such customer'] });
 
-        const addresses = await db.all('SELECT * FROM addresses WHERE customer_id = ? ORDER BY id', [customerId]);
+        const addressQuery = db.prepare('SELECT * FROM addresses WHERE customer_id = ? ORDER BY id');
+        const addresses = addressQuery.all(customerId);
         res.status(200).json({ message: 'Customer with addresses retrieved successfully', data: { ...customer, addresses } });
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', errors: ['Failed to retrieve customer details'] });
@@ -235,7 +216,8 @@ app.put('/api/customers/:id', async (req, res) => {
         if (errors.length > 0) return res.status(400).json({ message: 'Validation error', errors });
 
         const { first_name, last_name, phone_number } = req.body;
-        const result = await db.run(`UPDATE customers SET first_name = ?, last_name = ?, phone_number = ? WHERE id = ?`, [first_name, last_name, phone_number, customerId]);
+        const query = db.prepare(`UPDATE customers SET first_name = ?, last_name = ?, phone_number = ? WHERE id = ?`);
+        const result = query.run(first_name, last_name, phone_number, customerId);
 
         if (result.changes === 0) return res.status(404).json({ message: 'Customer not found', errors: ['No such customer'] });
 
@@ -254,7 +236,8 @@ app.delete('/api/customers/:id', async (req, res) => {
         const customerId = parseInt(req.params.id);
         if (isNaN(customerId)) return res.status(400).json({ message: 'Invalid customer ID', errors: ['Customer ID must be a number'] });
 
-        const result = await db.run('DELETE FROM customers WHERE id = ?', [customerId]);
+        const query = db.prepare('DELETE FROM customers WHERE id = ?');
+        const result = query.run(customerId);
         if (result.changes === 0) return res.status(404).json({ message: 'Customer not found', errors: ['No such customer'] });
 
         res.status(200).json({ message: 'Customer deleted successfully' });
@@ -263,8 +246,7 @@ app.delete('/api/customers/:id', async (req, res) => {
     }
 });
 
-
-// Address
+// Address Routes
 
 // POST /api/customers/:id/addresses - Add address
 app.post('/api/customers/:id/addresses', async (req, res) => {
@@ -275,15 +257,16 @@ app.post('/api/customers/:id/addresses', async (req, res) => {
         const errors = validateAddress(req.body);
         if (errors.length > 0) return res.status(400).json({ message: 'Validation error', errors });
 
-        const customer = await db.get('SELECT id FROM customers WHERE id = ?', [customerId]);
+        const customerQuery = db.prepare('SELECT id FROM customers WHERE id = ?');
+        const customer = customerQuery.get(customerId);
         if (!customer) return res.status(404).json({ message: 'Customer not found', errors: ['No such customer'] });
 
         const { address_details, city, state, pin_code } = req.body;
-        const result = await db.run(`INSERT INTO addresses (customer_id, address_details, city, state, pin_code) VALUES (?, ?, ?, ?, ?)`,
-             [customerId, address_details, city, state, pin_code]);
+        const insertQuery = db.prepare(`INSERT INTO addresses (customer_id, address_details, city, state, pin_code) VALUES (?, ?, ?, ?, ?)`);
+        const result = insertQuery.run(customerId, address_details, city, state, pin_code);
 
         res.status(201).json({ message: 'Address created successfully', data: 
-            { id: result.lastID, customer_id: customerId, address_details, city, state, pin_code } });
+            { id: result.lastInsertRowid, customer_id: customerId, address_details, city, state, pin_code } });
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', errors: ['Failed to create address'] });
     }
@@ -295,10 +278,12 @@ app.get('/api/customers/:id/addresses', async (req, res) => {
         const customerId = parseInt(req.params.id);
         if (isNaN(customerId)) return res.status(400).json({ message: 'Invalid customer ID', errors: ['Customer ID must be a number'] });
 
-        const customer = await db.get('SELECT id FROM customers WHERE id = ?', [customerId]);
+        const customerQuery = db.prepare('SELECT id FROM customers WHERE id = ?');
+        const customer = customerQuery.get(customerId);
         if (!customer) return res.status(404).json({ message: 'Customer not found', errors: ['No such customer'] });
 
-        const addresses = await db.all('SELECT * FROM addresses WHERE customer_id = ? ORDER BY id', [customerId]);
+        const addressQuery = db.prepare('SELECT * FROM addresses WHERE customer_id = ? ORDER BY id');
+        const addresses = addressQuery.all(customerId);
         res.status(200).json({ message: 'Addresses retrieved successfully', data: addresses });
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', errors: ['Failed to retrieve addresses'] });
@@ -315,7 +300,8 @@ app.put('/api/addresses/:addressId', async (req, res) => {
         if (errors.length > 0) return res.status(400).json({ message: 'Validation error', errors });
 
         const { address_details, city, state, pin_code } = req.body;
-        const result = await db.run(`UPDATE addresses SET address_details = ?, city = ?, state = ?, pin_code = ? WHERE id = ?`, [address_details, city, state, pin_code, addressId]);
+        const query = db.prepare(`UPDATE addresses SET address_details = ?, city = ?, state = ?, pin_code = ? WHERE id = ?`);
+        const result = query.run(address_details, city, state, pin_code, addressId);
 
         if (result.changes === 0) return res.status(404).json({ message: 'Address not found', errors: ['No such address'] });
 
@@ -331,7 +317,8 @@ app.delete('/api/addresses/:addressId', async (req, res) => {
         const addressId = parseInt(req.params.addressId);
         if (isNaN(addressId)) return res.status(400).json({ message: 'Invalid address ID', errors: ['Address ID must be a number'] });
 
-        const result = await db.run('DELETE FROM addresses WHERE id = ?', [addressId]);
+        const query = db.prepare('DELETE FROM addresses WHERE id = ?');
+        const result = query.run(addressId);
         if (result.changes === 0) return res.status(404).json({ message: 'Address not found', errors: ['No such address'] });
 
         res.status(200).json({ message: 'Address deleted successfully' });
@@ -340,7 +327,5 @@ app.delete('/api/addresses/:addressId', async (req, res) => {
     }
 });
 
-
-
-const PORT =  5000;
+const PORT = 5000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
