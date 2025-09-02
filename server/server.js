@@ -45,7 +45,7 @@ function initializeDatabase() {
     }
 }
 
-// ------------------ Validation ------------------
+//  Validation 
 function validateCustomer(customer) {
     const errors = [];
     if (!customer.first_name?.trim()) errors.push('First name is required');

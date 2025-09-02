@@ -1,16 +1,20 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { FaArrowLeft } from "react-icons/fa";
 import { FiSave } from "react-icons/fi";
 import { IoMdPerson } from "react-icons/io";
 import './AddCustomer.css'
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { AppContext } from '../../context/AppContext';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddCustomer = () => {
   const [customerDetails, setCustomerDetails] = useState({
     first_name: '', last_name: '', phone_number: ''
   }) 
   const [errMsg, setErrMsg] = useState('')
+  const {url} = useContext(AppContext)
 
   const navigate = useNavigate()
 
@@ -25,19 +29,24 @@ const AddCustomer = () => {
   const handleSubmit = async (e) => {
      e.preventDefault()
      try {
-        const response = await axios.post('http://localhost:5000/api/customers', customerDetails)
-        if (response.status === 200) {
-            setErrMsg('')
-        } else {
-            setErrMsg(response.data.message)
+        const response = await axios.post(`${url}/api/customers`, customerDetails)
+        if (response.status === 201) {
+             toast.success('Added Successfully')
+             setTimeout(() => {
+              navigate('/customer')
+             }, 2000)
+            
         }
+        
      } catch (error) {
         console.log('error while adding customer: ',error.message)
+        toast.error('Failed to add')
      }
   }
   
 
   return (
+    <>
     <div className='add-customer-container'>
       <div className='add-header'>
           <FaArrowLeft onClick={() => navigate('/customer')} className='back-home' /> 
@@ -81,6 +90,8 @@ const AddCustomer = () => {
          </ul>
       </div>
     </div>
+    <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+    </>
   )
 }
 

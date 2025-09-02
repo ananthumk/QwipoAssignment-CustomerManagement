@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { FaArrowLeft } from "react-icons/fa";
 import { FiSave, FiEdit } from "react-icons/fi";
 import { IoMdPerson } from "react-icons/io"
@@ -10,6 +10,7 @@ import AddAddress from '../../components/AddAddress/AddAddress';
 import AddressTable from '../../components/AddressTable/AddressTable';
 import EditAddress from '../../components/EditAddress/EditAddress';
 import Delete from '../../components/Delete/Delete';
+import { AppContext } from '../../context/AppContext';
 
 const CustomerDetails = () => {
     const [customerDetails, setCustomerDetails] = useState({})
@@ -17,7 +18,9 @@ const CustomerDetails = () => {
     const [showEditAddress, setEditAddress] = useState(false)
     const [showPopup, setShowPopup] = useState(false)
     const [addressId, setAddressId] = useState(null)
-
+    
+    
+    const {url} = useContext(AppContext)
     const addressLength = customerDetails.addresses?.length || 0
     const navigate = useNavigate()
     const { id } = useParams()
@@ -28,13 +31,16 @@ const CustomerDetails = () => {
     useEffect(() => {
         const fetchCustomer = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/customers/${id}/full`)
+                const response = await axios.get(`${url}/api/customers/${id}/full`)
                 console.log('Customer full',response)
                 if(response.status === 200){
                     setCustomerDetails(response.data.data)
+                    
                 }
+                
             } catch (error) {
                 console.log('Error while customer Data: ', error.message)
+                
             }
         }
         fetchCustomer()
@@ -77,13 +83,13 @@ const CustomerDetails = () => {
             <button onClick={() => {setAddAddress(true)
                  setEditAddress(false)}} className='add-address-btn'>+ Add Address</button>
           </div>
-          <AddressTable setEditAddress={setEditAddress} setShowPopup={setShowPopup} 
+          <AddressTable  setEditAddress={setEditAddress} setShowPopup={setShowPopup} 
            setAddressId={setAddressId} setAddAddress={setAddAddress} customerDetails={customerDetails} />
         </div>
     </div>
-    {showAddAddress && <AddAddress setAddAddress = {setAddAddress} />}
-    {showEditAddress && <EditAddress filterAddress={filterAddress} addressId={addressId} setEditAddress = {setEditAddress} />}
-    {showPopup && <Delete setShowPopup={setShowPopup} />}
+    {showAddAddress && <AddAddress customerId={id} setAddAddress = {setAddAddress} />}
+    {showEditAddress && <EditAddress addressId={addressId} customerId={id} filterAddress={filterAddress}  setEditAddress = {setEditAddress} />}
+    {showPopup && <Delete valueType='address' addressId={addressId}  setShowPopup={setShowPopup} />}
     </>
   )
 }

@@ -1,8 +1,11 @@
 import axios from 'axios'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
+import { AppContext } from '../../context/AppContext'
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
-const EditAddress = ({setEditAddress,filterAddress}) => {
+const EditAddress = ({setEditAddress,filterAddress, addressId}) => {
 
   const [editDetails, setEditDetails] = useState({
     address_details: '', city: '', state: '', pin_code: ''
@@ -17,6 +20,8 @@ const EditAddress = ({setEditAddress,filterAddress}) => {
     }))
   }
 
+  const {url} = useContext(AppContext)
+
   useEffect(() => {
     if (filterAddress) {
         setEditDetails({
@@ -27,11 +32,29 @@ const EditAddress = ({setEditAddress,filterAddress}) => {
         })
     }
   }, [filterAddress])
+
+  const handleSubmit = async(e) => {
+    e.preventDefault()
+    try {
+      const response = await axios.put(`${url}/api/addresses/${addressId}`, editDetails)
+      if(response.status === 200){
+          toast.success('Address Updated')
+          setTimeout(() => {
+            setEditAddress(false)
+          }, 2000)
+          
+      }
+    } catch (error) {
+      console.log('Error while editing address: ', error.message)
+      toast.error('failed to update address')
+    }
+  }
   return (
+    <>
     <div className='add-address-page'>
        <div  className='details-card address-card'>
                <h2>Edit Address</h2>
-               <form >
+               <form onSubmit={handleSubmit} >
                 <div className='group'>
                    <label>Address Details</label>
                    <textarea rows={5} cols={8} value={editDetails.address_details} name='address_details' onChange={handleChange} placeholder='Enter your address' /></div>
@@ -59,6 +82,8 @@ const EditAddress = ({setEditAddress,filterAddress}) => {
                </form>
              </div>
     </div>
+    <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+    </>
   )
 }
 

@@ -17,6 +17,7 @@ const AddressTable = ({customerDetails, setEditAddress,setAddressId, setAddAddre
                     </tr>
                 </thead>
                 <tbody>
+                  
   {customerDetails?.addresses && customerDetails.addresses.length > 0 ? (
     customerDetails.addresses.map((data) => (
       <tr key={data.id}>

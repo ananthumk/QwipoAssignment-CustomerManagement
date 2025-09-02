@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { FaArrowLeft } from "react-icons/fa";
 import { FiSave } from "react-icons/fi";
 import { IoMdPerson } from "react-icons/io";
 import './EditCustomer.css'
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { AppContext } from '../../context/AppContext';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 const EditCustomer = () => {
@@ -14,6 +17,7 @@ const EditCustomer = () => {
   })
    
    const navigate = useNavigate()
+   const {url} = useContext(AppContext)
 
    const { id } = useParams()
    console.log('customerId', id)
@@ -21,7 +25,7 @@ const EditCustomer = () => {
   useEffect(() => {
     const fetchCustomerDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/customers/${id}`)
+        const response = await axios.get(`${url}/api/customers/${id}`)
         if(response.status === 200){
           setCustomer(response.data.data)
           setUpdatedDetails(
@@ -52,16 +56,21 @@ const EditCustomer = () => {
   const handleSubmit = async(e) => {
     e.preventDefault()
     try {
-      const response = await axios.put(`http://localhost:5000/api/customers/${id}`, updateDetails)
+      const response = await axios.put(`${url}/api/customers/${id}`, updateDetails)
       if (response.status === 200) {
-        navigate('/customer')
+        toast.success('Updated successfully')
+        setTimeout(() => {
+    navigate('/customer');
+  }, 1500); 
       }
     } catch (error) {
       console.log('Error While updating customer details: ', error.message)
+      toast.error('Failed to update')
     }
   }
 
   return (
+    <>
     <div className='add-customer-container'>
       <div className='add-header'>
           <FaArrowLeft onClick={() => navigate('/customer')} className='back-home' /> 
@@ -104,6 +113,8 @@ const EditCustomer = () => {
          </ul>
       </div>
     </div>
+    <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+    </>
   )
 }
 

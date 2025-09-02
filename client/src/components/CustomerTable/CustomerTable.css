@@ -20,6 +20,10 @@
   background: #f3f6fa;
 }
 
+.loader{
+  margin: 20px 350%;
+}
+
 .customer-table thead th {
   text-align: left;
   padding: 12px 16px;
