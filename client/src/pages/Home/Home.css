@@ -1,0 +1,158 @@
+.home-page{
+    min-height: 100vh;
+    width: 100%;
+    background-color: #E8F9FF;
+}
+
+.home1-container{
+    padding: 50px;
+    text-align: center;
+}
+
+.heading{
+    font-size: 50px;
+    font-weight: bold;
+}
+
+.home1-container p{
+    font-size: 24px;
+    color: #57564F;
+    width: 60%;
+    margin: 0 auto;
+}
+
+.btns-container{
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.btns-container button, .start-btn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 20px;
+    border-radius: 6px;
+     font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.c-view-btn, .start-btn{
+    background-color: #2d779f;
+    color: #FFF;
+    border: 0;
+}
+
+.add-btn{
+    background-color: #F8F8F8;
+    border: 1px solid #DDDAD0;
+    
+}
+
+.home2-container{
+    background-color: #fafafa;
+    padding: 30px;
+    text-align: center;
+}
+
+.sub-heading{
+    font-size: 30px;
+    font-weight: 700;
+    
+}
+
+.home2-container p, .home3-container p{
+    font-size: 20px;
+    font-weight: 400;
+    padding-top: 10px;
+}
+
+.home-card-container{
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.card{
+    background-color: #FFF;
+    padding:20px;
+    max-width: 350px;
+    
+    text-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 8px;
+    
+}
+
+.card:hover {
+box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.card .icon {
+    background-color: #9bc9e3;
+    padding: 5px;
+    font-size: 28px;
+    border-radius: 6px;
+    color: #FFF;
+}
+
+.card h2{
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.card p{
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.home3-container{
+    padding: 30px;
+    text-align: center;
+}
+
+.start-btn {
+    margin: 0 auto;
+    margin-top: 20px;
+}
+
+@media screen and (max-width: 720px) {
+    .home1-container{padding: 30px 20px;}
+    .heading {
+        font-size: 30px;
+    }
+    .home1-container p{
+        font-size: 20px;
+        width: 100%;
+        margin: 0;
+        padding-top: 10px;
+    }
+    .btns-container{
+        flex-direction: column;
+    }
+    .sub-heading {
+        font-size: 22px;
+    }
+    .home2-container p, .home3-container p{
+        font-size: 18px;
+    }
+    .card h2{
+        font-size: 18px;
+    }
+    .card p{
+        font-size: 16px;
+    }
+    .btns-container button, .start-btn{
+        font-size: 15px;
+    }
+}

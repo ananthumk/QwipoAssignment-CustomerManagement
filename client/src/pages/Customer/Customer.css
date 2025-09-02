@@ -1,0 +1,161 @@
+.customer-page{
+    min-height: 100vh;
+    width: 100%;
+    padding: 30px 100px;
+    margin: 0 auto;
+    background-color: #F8FAE5;
+    position: relative;
+}
+
+
+
+.header-container{
+    padding: 10px 0px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.logo-section{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.logo-icon{
+    background-color: #BBDCE5;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 50px;
+}
+
+.logos h1{
+   font-size: 25px;
+   
+}
+
+.logos p{
+    font-size: 20px;
+    font-weight: 400;
+}
+
+.add-button{
+    padding: 10px 20px; 
+    background-color: #0046FF;
+    color:#FFF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    font-size: 15px;
+    font-weight: 600;
+    border: 0;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.customers-card{
+    width: 100%;
+    padding: 20px; 
+    background-color: #FFF;
+    border: 1px solid rgb(175, 172, 172);
+    border-radius: 8px; 
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sub-head{
+    padding: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sub-head h2{
+    font-size: 21px;
+    font-weight: 500;
+}
+
+.sub-head button {
+    background-color: #EBCB90;
+    padding: 3px 8px;
+    border-radius: 10px;
+    border: 0;
+    outline: 0;
+    font-size: 14px;
+}
+
+.search-container{
+    width: 100%;
+    padding: 6px 8px;
+    background-color: #F2EFE7;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border-radius: 6px;
+}
+
+.search-icon{
+    font-size: 16px;
+}
+
+.search-container input{
+    border: 0; 
+    width: 100%;
+    outline: 0 ;
+    background-color: transparent;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.search-container input::placeholder{
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.pagination-container{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.pagination-container button {
+    padding: 5px;
+    background-color: #FFF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid gray;
+    outline: none;
+    cursor: pointer;
+}
+
+.pagination-container p{
+    font-size: 18px;
+    font-weight: 400;
+}
+
+@media screen and (max-width: 720px) {
+    .customer-page{
+        padding: 20px;
+    }
+    .logo-icon{font-size: 40px;}
+    .logos h1{
+        font-size: 19px ;
+    }
+    .logos p{font-size: 14px;}
+    #add-btn-span{
+        display: none;
+    }
+    .add-button{
+        padding: 10px 14px;
+    }
+    .pagination-container button{
+        padding: 3px;
+    }
+}
