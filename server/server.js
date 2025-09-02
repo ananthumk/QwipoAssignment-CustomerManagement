@@ -98,7 +98,7 @@ function validateAddress(address) {
     return errors;
 }
 
-// ------------------ Customer Routes ------------------
+// Customer
 
 // POST /api/customers - Create new customer
 app.post('/api/customers', async (req, res) => {
